@@ -1,22 +1,38 @@
 import os
 import requests
+import argparse
 
-# Retrieve the API key from an environment variable
-api_key = os.getenv('GODADDY_API_KEY')
+# Set up argument parser
+parser = argparse.ArgumentParser(description="Script to interact with GoDaddy APIs")
+parser.add_argument('--godaddy_api_key', required=True, help='GoDaddy API Key')
 
-if not api_key:
-    raise ValueError("API key not found. Please set the GODADDY_API_KEY environment variable.")
 
-# Use the API key to make a request
-url = "https://api.godaddy.com/v1/domains"
-headers = {
-    "Authorization": f"sso-key {api_key}",
-    "Content-Type": "application/json"
-}
+# Parse the arguments
+args = parser.parse_args()
 
-response = requests.get(url, headers=headers)
+godaddy_api_key = args.godaddy_api_key
 
-if response.status_code == 200:
-    print("API request successful")
-else:
-    print(f"API request failed with status code {response.status_code}")
+# Function to interact with GoDaddy API
+def godaddy_api_request(endpoint, data=None):
+    url = f"https://api.godaddy.com/v1/{endpoint}"
+    headers = {
+        "Authorization": f"sso-key {godaddy_api_key}",
+        "Content-Type": "application/json"
+    }
+
+    if data:
+        response = requests.post(url, headers=headers, json=data)
+    else:
+        response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        print("GoDaddy API request successful")
+        return response.json()
+    else:
+        print(f"GoDaddy API request failed with status code {response.status_code}")
+        return None
+
+# Example usage
+godaddy_response = godaddy_api_request("domains")
+if godaddy_response:
+    print(godaddy_response)
